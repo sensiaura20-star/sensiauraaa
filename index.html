@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENSIAURA</title>
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #000;
+    color: white;
+    text-align: center;
+    min-height: 100vh;
+  }
+  h1 { margin-top: 30px; font-size: 28px; }
+  .container {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 15px;
+    width: 90%;
+    max-width: 420px;
+    margin: 24px auto;
+    padding: 18px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.04);
+  }
+  input { width: 90%; padding: 10px; margin: 10px 0; border: none; border-radius: 10px; outline: none; font-size: 16px; }
+  button {
+    width: 94%;
+    padding: 12px;
+    margin-top: 10px;
+    background-color: #ff0000;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  button:hover { background-color: #cc0000; }
+  #admArea, #mainArea, #auxArea, #admLogin { display: none; }
+  .key-box {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+    font-family: monospace;
+  }
+  #installBanner {
+    position: fixed; bottom: 20px; right: 20px;
+    background: #ff0000;
+    padding: 10px 15px;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    display: none;
+    z-index: 999;
+  }
+  #injectMsg {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    background: #00cc00;
+    color: #000;
+    border-radius: 8px;
+    font-weight: bold;
+    animation: fadeOut 3s forwards;
+  }
+  @keyframes fadeOut { 0% {opacity:1;} 70%{opacity:1;} 100%{opacity:0;} }
+  .small { font-size: 13px; color: rgba(255,255,255,0.7); }
+  
+  /* ===== AUXÍLIO SensiAura PREMIUM ===== */
+  .aux-section {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 15px;
+    margin: 15px 0;
+    text-align: left;
+    box-shadow: 0 0 12px rgba(255,0,0,0.1);
+  }
+  .aux-section h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #ff0000;
+    text-shadow: 0 0 5px rgba(255,0,0,0.3);
+  }
+  .switch-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+  }
+  .switch-label { font-size: 15px; color: white; user-select: none; }
+  .switch { position: relative; display: inline-block; width: 48px; height: 24px; }
+  .switch input { opacity:0; width:0; height:0; }
+  .slider {
+    position:absolute; cursor:pointer; background-color: rgba(255,255,255,0.3);
+    border-radius:24px; top:0; left:0; right:0; bottom:0; transition:0.4s;
+  }
+  .slider:before {
+    position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px;
+    background:white; border-radius:50%; transition:0.4s;
+  }
+  .switch input:checked + .slider { background-color:#ff0000; }
+  .switch input:checked + .slider:before { transform:translateX(24px); }
+  #precisionSlider { width:100%; margin:8px 0 4px 0; accent-color:#ff0000; }
+  #reticleWrap { display:flex; justify-content:center; margin-top:15px; height:150px; }
+  #reticle { width:90px; height:90px; border-radius:50%; border:2px solid rgba(255,0,0,0.25);
+    display:flex; align-items:center; justify-content:center; position:relative; }
+  #dot { width:10px; height:10px; border-radius:50%; background:#ff0000; position:absolute; transition: transform 0.08s linear; }
+  #statusArea { font-size:14px; margin-top:12px; text-align:left; padding:8px; background: rgba(255,255,255,0.05); border-radius:10px; }
+  .aux-btn { background-color:#ff0000; color:white; font-weight:bold; border-radius:10px; padding:12px; width:90%; margin:15px auto 0 auto; display:block; border:none; cursor:pointer; font-size:16px; transition:0.2s; }
+  .aux-btn:hover { background-color:#cc0000; }
+</style>
+</head>
+<body>
+<h1>SensiAura</h1>
+
+<!-- LOGIN -->
+<div class="container" id="loginArea">
+  <h2>Login</h2>
+  <input type="text" id="keyInput" placeholder="Digite sua key...">
+  <button onclick="entrar()">Entrar</button>
+  <button onclick="abrirAdm()">ADM</button>
+</div>
+
+<!-- ADM LOGIN -->
+<div class="container" id="admLogin">
+  <h2>Área ADM</h2>
+  <input type="password" id="admSenha" placeholder="Senha do ADM">
+  <button onclick="loginAdm()">Entrar como ADM</button>
+</div>
+
+<!-- ADM AREA -->
+<div class="container" id="admArea">
+  <h2>Gerador de Keys</h2>
+  <div class="key-box" id="geradaKey">Nueva key generada</div>
+  <button onclick="gerarKey()">generar Key</button>
+  <button onclick="copiarKey()">Copiar Key</button>
+  <button onclick="sairAdm()">Salir</button>
+</div>
+
+<!-- MAIN AREA PREMIUM -->
+<div class="container" id="mainArea">
+  <h2>Área Premium</h2>
+  <p id="statusMsg">Sistema ativado ✅</p>
+  <div id="injectMsg">Auxílio injetado com sucesso ✅</div>
+
+  <!-- AUXÍLIO SensiAura -->
+  <div class="container" id="auxArea">
+    <h2>Auxílio SensiAura</h2>
+
+    <!-- Sistema Avanzado -->
+    <div class="aux-section">
+      <h3>Sistema Avanzado</h3>
+      <div class="switch-row">
+        <label class="switch"><input type="checkbox" id="neuralaim"><span class="slider"></span></label>
+        <span class="switch-label">Neural Aim</span>
+      </div>
+      <div class="switch-row">
+        <label class="switch"><input type="checkbox" id="noRecoil"><span class="slider"></span></label>
+        <span class="switch-label">No Recoil</span>
+      </div>
+    </div>
+
+    <!-- Ajustes de Mira -->
+    <div class="aux-section">
+      <h3>Ajustes de Mira</h3>
+      <div class="switch-row">
+        <label class="switch"><input type="checkbox" id="aimbot100"><span class="slider"></span></label>
+        <span class="switch-label">Aimbot 100%</span>
+      </div>
+      <div class="switch-row">
+        <label class="switch"><input type="checkbox" id="seguirPessoa"><span class="slider"></span></label>
+        <span class="switch-label">Seguir Alvo</span>
+      </div>
+      <div class="switch-row">
+        <label class="switch"><input type="checkbox" id="aimPrecision"><span class="slider"></span></label>
+        <span class="switch-label">Precision Mode</span>
+      </div>
+      <label for="precisionSlider" class="small">Precisão do Aimbot:</label>
+      <input type="range" id="precisionSlider" min="0" max="100" value="50">
+      <div class="small">Valor atual: <span id="precisionValue">50</span></div>
+    </div>
+
+    <!-- Retículo -->
+    <div id="reticleWrap">
+      <div id="reticle"><div id="dot"></div></div>
+    </div>
+
+    <!-- Status -->
+    <div id="statusArea">
+      <div><strong>Estado Atual:</strong></div>
+      <div id="stateNoRecoil" class="small">No Recoil: OFF</div>
+      <div id="stateAimbot" class="small">Aimbot: OFF</div>
+      <div id="stateHead" class="small">Seguir Alvo: OFF</div>
+      <div id="statePrecision" class="small">Precisão: 50</div>
+    </div>
+
+    <button class="aux-btn" onclick="injetarFuncoes()">Injetar Funções</button>
+  </div>
+
+  <button onclick="abrirFreeFire()">Abrir Free Fire</button>
+  <button onclick="abrirFreeFireMax()">Abrir Free Fire Max</button>
+  <button onclick="logout()">Sair</button>
+</div>
+
+<div id="installBanner" onclick="instalarPWA()">+ Instalar App</div>
+
+<script>
+  // ---------- Variáveis ----------
+  const settings={neuralaim:false,noRecoil:false,aimbot100:false,seguirPessoa:false,aimPrecision:false,precision:50};
+  const sliders={precision:document.getElementById('precisionSlider'),precisionValue:document.getElementById('precisionValue')};
+  const states={noRecoil:document.getElementById('stateNoRecoil'),aimbot:document.getElementById('stateAimbot'),head:document.getElementById('stateHead'),precision:document.getElementById('statePrecision')};
+  const dot=document.getElementById('dot');
+  let keyGerada="";
+
+  // ---------- Controles ----------
+  function setupControls(){
+    ['neuralaim','noRecoil','aimbot100','seguirPessoa','aimPrecision'].forEach(id=>{
+      const el=document.getElementById(id);
+      el.addEventListener('change',()=>{
+        settings[id]=el.checked;
+        applySettingEffects();
+      });
+    });
+    sliders.precision.addEventListener('input',()=>{
+      settings.precision=Number(sliders.precision.value);
+      sliders.precisionValue.innerText=settings.precision;
+      applySettingEffects();
+    });
+  }
+
+  function applySettingEffects(){
+    states.noRecoil.innerText=`No Recoil: ${settings.noRecoil?'ON':'OFF'}`;
+    states.aimbot.innerText=`Aimbot: ${settings.aimbot100?'ON':'OFF'}`;
+    states.head.innerText=`Seguir Alvo: ${settings.seguirPessoa?'ON':'OFF'}`;
+    states.precision.innerText=`Precisão: ${settings.precision}`;
+    const jitter=Math.max(1,40-(settings.precision*0.35));
+    const centerBias=settings.aimbot100?0.15:0.0;
+    updateReticlePosition(jitter,centerBias);
+    if(settings.noRecoil) showTemporaryMessage('No Recoil ativado');
+    if(settings.aimbot100) showTemporaryMessage('Aimbot 100% ativado');
+  }
+
+  let reticleInterval=null;
+  function updateReticlePosition(jitter,centerBias){
+    if(reticleInterval) clearInterval(reticleInterval);
+    reticleInterval=setInterval(()=>{
+      const angle=Math.random()*Math.PI*2;
+      const radius=Math.random()*jitter;
+      const bx=0*centerBias; const by=0*centerBias;
+      const tx=bx+Math.cos(angle)*radius; const ty=by+Math.sin(angle)*radius;
+      dot.style.transform=`translate(${tx}px, ${ty}px)`;
+    },80);
+  }
+
+  function showTemporaryMessage(text){
+    const msg=document.getElementById('injectMsg');
+    msg.innerText=text+' ✅';
+    msg.style.display='block';
+    setTimeout(()=>{msg.style.display='none';},1800);
+  }
+
+  // ---------- Login / ADM / Keys ----------
+  document.getElementById("precisionValue").innerText=document.getElementById("precisionSlider").value;
+  function entrar(){
+    const key=document.getElementById("keyInput").value.trim();
+    const savedKey=localStorage.getItem("ultimaKeyGerada");
+    if(key && key===savedKey){
+      document.getElementById("loginArea").style.display="none";
+      document.getElementById("mainArea").style.display="block";
+      document.getElementById("auxArea").style.display="block";
+      const msg=document.getElementById("injectMsg");
+      msg.innerText="Sistema ativado ✅"; msg.style.display="block";
+      setTimeout(()=>msg.style.display="none",3000);
+    } else alert("Key inválida! Use uma key gerada pelo ADM.");
+  }
+  function abrirAdm(){ document.getElementById("loginArea").style.display="none"; document.getElementById("admLogin").style.display="block"; }
+  function loginAdm(){
+    const senha=document.getElementById("admSenha").value.trim();
+    if(senha==="SensiAura-AUXILIAR-V2-PRMIUM"){ document.getElementById("admLogin").style.display="none"; document.getElementById("admArea").style.display="block"; }
+    else alert("Contraseña incorreta!");
+  }
+  function gerarKey(){
+    const random=Math.random().toString(36).substring(2,8).toUpperCase();
+    keyGerada="SensiAura-"+random;
+    localStorage.setItem("ultimaKeyGerada",keyGerada);
+    document.getElementById("geradaKey").innerText=keyGerada;
+    alert("Key generada com suceso!");
+  }
+  function copiarKey(){
+    if(!keyGerada) return alert("Nueva key gerada !");
+    navigator.clipboard.writeText(keyGerada);
+    document.getElementById("keyInput").value=keyGerada;
+    alert("Key copiada e inserte en  login!");
+  }
+  function sairAdm(){ document.getElementById("admArea").style.display="none"; document.getElementById("loginArea").style.display="block"; }
+  function logout(){ document.getElementById("mainArea").style.display="none"; document.getElementById("loginArea").style.display="block"; }
+
+  // ---------- Injetar Funcoes ----------
+  function injetarFuncoes(){
+    const msg=document.getElementById("injectMsg");
+    msg.innerText="Funções injetadas (aplicadas localmente) ✅"; msg.style.display="block";
+    setTimeout(()=>msg.style.display="none",2200);
+    abrirFreeFire(); setTimeout(abrirFreeFireMax,800);
+  }
+
+  // ---------- Abrir jogos ----------
+  function abrirFreeFire(){
+    try{ window.location.href="intent://com.dts.freefireth/#Intent;scheme=package;end";
+      setTimeout(()=>{try{window.location.href="freefire://";}catch(e){}},500);
+      setTimeout(()=>alert("Tentativa de abrir Free Fire feita. Se não abriu, verifique se está instalado."),1600);
+    } catch(e){ alert("Não foi possível abrir Free Fire. Tente manualmente."); }
+  }
+  function abrirFreeFireMax(){
+    try{ window.location.href="intent://com.dts.freefiremax/#Intent;scheme=package;end";
+      setTimeout(()=>{try{window.location.href="freefiremax://";}catch(e){}},500);
+      setTimeout(()=>alert("Tentativa de abrir Free Fire Max feita. Se não abriu, verifique se está instalado."),1600);
+    } catch(e){ alert("Não foi possível abrir Free Fire Max. Tente manualmente."); }
+  }
+
+  // ---------- PWA ----------
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); deferredPrompt=e; document.getElementById("installBanner").style.display="block"; });
+  function instalarPWA(){ document.getElementById("installBanner").style.display="none";
+    if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.then(choice=>{deferredPrompt=null;}); }
+    else alert('Instalação não disponível neste browser. No iOS, use "Adicionar aos Favoritos".');
+  }
+
+  // ---------- Service Worker ----------
+  if('serviceWorker' in navigator){
+    const swCode=`const CACHE_NAME='bk7sensi-cache-v1';const urlsToCache=['./'];self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(urlsToCache)));});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>new Response('Você está offline!',{status:200,statusText:'Offline'}))))});`;
+    const blob=new Blob([swCode],{type:'text/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err=>{console.log('SW register failed',err);});
+  }
+
+  // ---------- Inicialização ----------
+  setupControls();
+  applySettingEffects();
+  updateReticlePosition(40,0);
+
+  // ---------- Persistência ----------
+  function saveSettingsToStorage(){ try{ localStorage.setItem('bk7sensi_settings',JSON.stringify(settings)); } catch(e){} }
+  (function loadSettingsFromStorage(){ try{ const s=JSON.parse(localStorage.getItem('bk7sensi_settings')||'{}'); if(Object.keys(s).length){ Object.assign(settings,s); ['neuralaim','noRecoil','aimbot100','seguirPessoa','aimPrecision'].forEach(id=>{const el=document.getElementById(id); if(el) el.checked=!!settings[id];}); const prec=Number(settings.precision||0); sliders.precision.value=prec; sliders.precisionValue.innerText=prec; applySettingEffects(); } } catch(e){} })();
+  setInterval(saveSettingsToStorage,2000);
+</script>
+</body>
+</html>
